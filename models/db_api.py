@@ -39,6 +39,11 @@ class DataApi:
             group = s.query(Group.chat_id).all()
             return [x[0] for x in group]
 
+    def get_group_by_inline(self):
+        with self.session() as s:
+            group = s.query(Group.title, Group.chat_id).all()
+            return group
+
     def remove_group_for_db(self, chat_id):
         with self.session() as s:
             s.query(Group).filter(Group.chat_id == chat_id).delete()

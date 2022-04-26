@@ -8,6 +8,7 @@ from aiogram.utils.exceptions import ChatNotFound, PaymentProviderInvalid, BotKi
 
 from deploy.config import TOKEN, PAYMENT_TOKEN, PRICES, ADMIN_ID, \
     TITLE_PAYMENT, DESCRIPTION_PAYMENT, PAYLOAD
+from markup.markup import get_inline_buttons
 from models.db_api import data_api
 from markup import main_menu
 from messages import MESSAGES
@@ -54,7 +55,7 @@ async def start(message: types.Message):
 @dp.message_handler(commands=['download_statistics'])
 async def download_statistics(message: types.Message):
     if message.from_user.id not in ADMIN_ID:
-        await bot.send_message(message.chat.id, MESSAGES["download_error"], reply_markup=main_menu)
+        await bot.send_message(message.chat.id, MESSAGES["start_error"], reply_markup=main_menu)
     elif message.chat.id < 0:
         pass
     else:
@@ -63,37 +64,48 @@ async def download_statistics(message: types.Message):
 
 
 @dp.message_handler(commands=['send_invoice'])
-async def send_invoice_for_all_groups(message: types.Message):
-    system_message = ''
+async def send_link_group(message: types.Message):
     if message.from_user.id not in ADMIN_ID:
-        await bot.send_message(message.chat.id, MESSAGES["start_error"])
+        await bot.send_message(message.chat.id, MESSAGES["start_error"], reply_markup=main_menu)
     elif message.chat.id < 0:
         pass
     else:
-        list_group_id = data_api.get_group_chat_id()
-        if list_group_id:
-            for chat_id in list_group_id:
-                try:
-                    await bot.send_invoice(chat_id, title="Оплата",
-                                           description="Описание оплаты",
-                                           provider_token=PAYMENT_TOKEN,
-                                           currency='UAH',
-                                           payload="Оплата курсов",
-                                           prices=PRICES)
-                except ChatNotFound:
-                    await bot.send_message(message.chat.id, MESSAGES["no_access"])
-                except PaymentProviderInvalid:
-                    if not re.search(r'\bpayment_provider_invalid\b', system_message):
-                        system_message += '\n' * 2 + MESSAGES["payment_provider_invalid"]
-                    continue
-                except BotKicked:
-                    if not re.search(r'\bbot_kicked\b', system_message):
-                        system_message += '\n' * 2 + MESSAGES["bot_kicked"]
-                    continue
-            if system_message:
-                await bot.send_message(message.chat.id, system_message)
+        inline_buttons = get_inline_buttons()
+        if inline_buttons:
+            for title, inline_button in inline_buttons:
+                await bot.send_message(message.chat.id, title, reply_markup=inline_button, parse_mode="Markdown")
         else:
-            await bot.send_message(message.from_user.id, MESSAGES["not_group"])
+            await bot.send_message(message.chat.id, MESSAGES["not_group"], reply_markup=main_menu, parse_mode="Markdown")
+
+
+
+@dp.callback_query_handler(lambda c: c.data and c.data.startswith('btn'))
+async def send_invoice(callback_query: types.CallbackQuery):
+
+    system_message = ''
+    if callback_query.from_user.id not in ADMIN_ID:
+        await bot.send_message(callback_query.message.chat.id, MESSAGES["start_error"])
+    elif callback_query.message.chat.id < 0:
+        pass
+    else:
+        try:
+            chat_id = callback_query.data[3:]
+            await bot.send_invoice(chat_id, title="Оплата",
+                                   description="Описание оплаты",
+                                   provider_token=PAYMENT_TOKEN,
+                                   currency='UAH',
+                                   payload="Оплата курсов",
+                                   prices=PRICES)
+        except ChatNotFound:
+            await bot.send_message(callback_query.message.chat.id, MESSAGES["no_access"])
+        except PaymentProviderInvalid:
+            if not re.search(r'\bpayment_provider_invalid\b', system_message):
+                system_message += '\n' * 2 + MESSAGES["payment_provider_invalid"]
+        except BotKicked:
+            if not re.search(r'\bbot_kicked\b', system_message):
+                system_message += '\n' * 2 + MESSAGES["bot_kicked"]
+        if system_message:
+            await bot.send_message(callback_query.message.chat.id, system_message)
 
 
 @dp.message_handler(commands=['get_my_groups'])
