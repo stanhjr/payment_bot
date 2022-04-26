@@ -5,9 +5,8 @@ from aiogram import Dispatcher
 from aiogram.types import PreCheckoutQuery, ContentType
 from aiogram.utils import executor
 from aiogram.utils.exceptions import ChatNotFound, PaymentProviderInvalid, BotKicked
-from aiogram.utils.executor import start_webhook
 
-from deploy.config import TOKEN, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, PAYMENT_TOKEN, PRICES, ADMIN_ID, \
+from deploy.config import TOKEN, PAYMENT_TOKEN, PRICES, ADMIN_ID, \
     TITLE_PAYMENT, DESCRIPTION_PAYMENT, PAYLOAD
 from models.db_api import data_api
 from markup import main_menu
@@ -34,7 +33,6 @@ async def new_members_handler(message: types.Message):
 
 @dp.message_handler(content_types=[ContentType.LEFT_CHAT_MEMBER])
 async def new_members_handler(message: types.Message):
-    print(message)
     bot_obj = await bot.get_me()
     bot_id = bot_obj.id
     if message.left_chat_member.id == bot_id:
@@ -140,24 +138,5 @@ async def cmd_inline_url(message: types.Message):
                            prices=PRICES)
 
 
-async def on_startup(dp):
-    await bot.set_webhook(WEBHOOK_URL)
-
-
-async def on_shutdown(dp):
-    await bot.delete_webhook()
-    await dp.storage.close()
-    await dp.storage.wait_closed()
-
-
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
-    # start_webhook(
-    #     dispatcher=dp,
-    #     webhook_path=WEBHOOK_PATH,
-    #     on_startup=on_startup,
-    #     on_shutdown=on_shutdown,
-    #     skip_updates=True,
-    #     host=WEBAPP_HOST,
-    #     port=WEBAPP_PORT,
-    # )
