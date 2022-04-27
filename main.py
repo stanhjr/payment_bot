@@ -72,11 +72,10 @@ async def send_link_group(message: types.Message):
     else:
         inline_buttons = get_inline_buttons()
         if inline_buttons:
-            for title, inline_button in inline_buttons:
-                await bot.send_message(message.chat.id, title, reply_markup=inline_button, parse_mode="Markdown")
+            await bot.send_message(message.chat.id, 'Список групп', reply_markup=inline_buttons, parse_mode="Markdown")
+
         else:
             await bot.send_message(message.chat.id, MESSAGES["not_group"], reply_markup=main_menu, parse_mode="Markdown")
-
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('btn'))
