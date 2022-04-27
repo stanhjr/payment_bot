@@ -5,7 +5,7 @@ import pandas
 from pandas import DataFrame
 from sqlalchemy.sql import func
 
-from deploy.config import TIME_LIMIT_FOR_RECURRING_PAYMENTS
+from deploy.config import TIME_LIMIT_FOR_RECURRING_PAYMENTS, PAYLOAD_DEFAULT
 from models.models import session, Users, Payment, Group, Invoice
 
 
@@ -41,7 +41,7 @@ class DataApi:
 
             invoice = Invoice(title_payment=data.get("title_payment"),
                               description_payment=data.get("description_payment"),
-                              payload=data.get("payload"),
+                              payload=PAYLOAD_DEFAULT,
                               currency=data.get("currency"),
                               price=price * 100)
             s.add(invoice)
@@ -57,7 +57,7 @@ class DataApi:
             invoice = s.query(Invoice).filter(Invoice.id == data.get("invoice_id")).first()
             invoice.title_payment = data.get("title_payment")
             invoice.description_payment = data.get("description_payment")
-            invoice.payload = data.get("payload")
+            invoice.payload = PAYLOAD_DEFAULT
             invoice.currency = data.get("currency")
             invoice.price = price * 100
             s.add(invoice)

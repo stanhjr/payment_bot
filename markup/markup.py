@@ -9,7 +9,7 @@ def get_inline_buttons():
         for title, chat_id in group_list:
             callback_data = 'btn' + str(chat_id)
             inline_kb_full.add(InlineKeyboardButton(title, callback_data=callback_data))
-    inline_kb_full.add(InlineKeyboardButton('done', callback_data="btndone"))
+    inline_kb_full.add(InlineKeyboardButton('❌Отмена', callback_data="btndone"))
     return inline_kb_full
 
 
@@ -23,7 +23,9 @@ def get_invoices():
             title = title + ' ' + str(price / 100)
             inline_kb_full.add(InlineKeyboardButton(title, callback_data=callback_data_send_invoice),
                                InlineKeyboardButton('✏Изменить', callback_data=callback_data_edit_invoice))
+        inline_kb_full.add(InlineKeyboardButton('❌Отмена', callback_data="sentdone"))
         return inline_kb_full
+
     else:
         return False
 
@@ -32,6 +34,7 @@ def get_currency_buttons():
     inline_kb_full = InlineKeyboardMarkup(row_width=2)
     inline_kb_full.add(InlineKeyboardButton('UAH', callback_data="currencyUAH"),
                        InlineKeyboardButton('USD', callback_data="currencyUSD"))
+    # inline_kb_full.add(InlineKeyboardButton("❌Отмена", callback_data="currencydone"))
     return inline_kb_full
 
 

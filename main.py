@@ -128,7 +128,7 @@ async def create_invoice_description(message: types.Message, state: FSMContext):
             await bot.send_message(message.chat.id, MESSAGES["state_reset"], reply_markup=main_menu)
             return
         await state.update_data(description_payment=answer)
-        await bot.send_message(message.chat.id, MESSAGES["invoice_payload"])
+        await bot.send_message(message.chat.id, MESSAGES["invoice_currency"], reply_markup=get_currency_buttons())
         my_state = await state.get_state()
         if my_state == "CreateInvoice:description_payment":
             await CreateInvoice.next()
@@ -136,36 +136,22 @@ async def create_invoice_description(message: types.Message, state: FSMContext):
             await UpdateInvoice.next()
 
 
-@dp.message_handler(state=(CreateInvoice.payload, UpdateInvoice.payload))
-async def create_invoice_payload(message: types.Message, state: FSMContext):
-    if message.from_user.id not in ADMIN_ID:
-        await bot.send_message(message.chat.id, MESSAGES["start_error"], reply_markup=main_menu)
-    elif message.chat.id < 0:
-        pass
-    else:
-        answer = message.text
-        if answer == "❌Отмена":
-            await state.reset_data()
-            await state.finish()
-            await bot.send_message(message.chat.id, MESSAGES["state_reset"], reply_markup=main_menu)
-            return
-        await state.update_data(payload=answer)
-        await bot.send_message(message.chat.id, MESSAGES["invoice_currency"], reply_markup=get_currency_buttons())
-        my_state = await state.get_state()
-        if my_state == "CreateInvoice:payload":
-            await CreateInvoice.next()
-        elif my_state == "UpdateInvoice:payload":
-            await UpdateInvoice.next()
+@dp.message_handler(text="❌Отмена", state=(CreateInvoice.currency, UpdateInvoice.currency, SendInvoiceState.invoice_id))
+async def cancel_currency(message: types.Message, state: FSMContext):
+    await state.reset_data()
+    await state.finish()
+    await bot.send_message(message.chat.id, MESSAGES["state_reset"], reply_markup=main_menu)
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('currency'),
                            state=(CreateInvoice.currency, UpdateInvoice.currency))
 async def create_invoice_currency(callback_query: types.CallbackQuery, state: FSMContext):
     if callback_query.from_user.id not in ADMIN_ID:
-        await bot.send_message(callback_query.chat.id, MESSAGES["start_error"], reply_markup=main_menu)
+        await bot.send_message(callback_query.message.chat.id, MESSAGES["start_error"], reply_markup=main_menu)
     elif callback_query.message.chat.id < 0:
         pass
     else:
+        currency = callback_query.data[8:]
         await state.update_data(currency=callback_query.data[8:])
         await bot.send_message(callback_query.message.chat.id, MESSAGES["invoice_price"], reply_markup=cancel_menu)
         my_state = await state.get_state()
@@ -183,7 +169,6 @@ async def create_invoice_price(message: types.Message, state: FSMContext):
     elif message.chat.id < 0:
         pass
     else:
-
         answer = message.text
         if answer == "❌Отмена":
             await state.reset_data()
@@ -210,10 +195,6 @@ async def create_invoice_price(message: types.Message, state: FSMContext):
         await state.finish()
 
 
-
-
-
-
 # ----------------------------INVOICE LIST----------------------------------
 
 @dp.message_handler(text='💰Отправить оплату')
@@ -225,6 +206,7 @@ async def send_link_group(message: types.Message):
     else:
         inline_buttons = get_invoices()
         if inline_buttons:
+
             await bot.send_message(message.chat.id, MESSAGES["invoices_list"], reply_markup=inline_buttons,
                                    parse_mode="Markdown")
         else:
@@ -259,16 +241,21 @@ async def send_link_group(callback_query: types.CallbackQuery, state: FSMContext
         pass
     else:
         invoice_id = callback_query.data[4:]
-        inline_buttons = get_inline_buttons()
-        if inline_buttons:
-            await bot.send_message(callback_query.message.chat.id, 'Список групп', reply_markup=inline_buttons,
-                                   parse_mode="Markdown")
-            await SendInvoiceState.first()
-            await state.update_data(invoice_id=invoice_id)
-
+        if invoice_id == 'done':
+            await state.reset_data()
+            await state.finish()
+            await bot.send_message(callback_query.from_user.id, "Операция прервана")
         else:
-            await bot.send_message(callback_query.message.chat.id, MESSAGES["not_group"], reply_markup=main_menu,
-                                   parse_mode="Markdown")
+            inline_buttons = get_inline_buttons()
+            if inline_buttons:
+                await bot.send_message(callback_query.message.chat.id, 'Список групп', reply_markup=get_inline_buttons(),
+                                       parse_mode="Markdown")
+                await SendInvoiceState.first()
+                await state.update_data(invoice_id=invoice_id)
+
+            else:
+                await bot.send_message(callback_query.message.chat.id, MESSAGES["not_group"], reply_markup=main_menu,
+                                       parse_mode="Markdown")
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('btn'), state=SendInvoiceState.invoice_id)
@@ -281,8 +268,9 @@ async def send_invoice(callback_query: types.CallbackQuery, state: FSMContext):
     else:
         chat_id = callback_query.data[3:]
         if chat_id == 'done':
+            await state.reset_data()
             await state.finish()
-            await bot.send_message(callback_query.from_user.id, "Инвойсы высланы, можно продолжать работать")
+            await bot.send_message(callback_query.from_user.id, "Операция прервана")
         else:
             try:
 
@@ -305,6 +293,8 @@ async def send_invoice(callback_query: types.CallbackQuery, state: FSMContext):
                     system_message += '\n' * 2 + MESSAGES["bot_kicked"]
             if system_message:
                 await bot.send_message(callback_query.message.chat.id, system_message)
+            else:
+                await bot.send_message(callback_query.from_user.id, "Оплата выслана")
             await state.finish()
 
 
