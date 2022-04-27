@@ -6,7 +6,16 @@ from pandas import DataFrame
 from sqlalchemy.sql import func
 
 from deploy.config import TIME_LIMIT_FOR_RECURRING_PAYMENTS
-from models.models import session, Users, Payment, Group
+from models.models import session, Users, Payment, Group, Invoice
+
+
+def is_number(string):
+    try:
+        string = string.replace(" ", "")
+        string = string.replace(",", ".")
+        return float(string)
+    except ValueError:
+        return False
 
 
 def with_session(function):
@@ -22,6 +31,42 @@ def with_session(function):
 class DataApi:
     def __init__(self):
         self.session = session
+
+    def create_invoice(self, data):
+        price = is_number(data.get("price"))
+        if not price:
+            return False
+
+        with self.session() as s:
+
+            invoice = Invoice(title_payment=data.get("title_payment"),
+                              description_payment=data.get("description_payment"),
+                              payload=data.get("payload"),
+                              currency=data.get("currency"),
+                              price=price * 100)
+            s.add(invoice)
+            s.commit()
+            return True
+
+    def update_invoice(self, data):
+        price = is_number(data.get("price"))
+        if not price:
+            return False
+
+        with self.session() as s:
+            invoice = s.query(Invoice).filter(Invoice.id == data.get("invoice_id")).first()
+            invoice.title_payment = data.get("title_payment")
+            invoice.description_payment = data.get("description_payment")
+            invoice.payload = data.get("payload")
+            invoice.currency = data.get("currency")
+            invoice.price = price * 100
+            s.add(invoice)
+            s.commit()
+            return True
+
+    def get_invoice(self, invoice_id):
+        with self.session() as s:
+            return s.query(Invoice).filter(Invoice.id == invoice_id).first()
 
     def set_group(self, chat_id, title):
         with self.session() as s:
@@ -43,6 +88,11 @@ class DataApi:
         with self.session() as s:
             group = s.query(Group.title, Group.chat_id).all()
             return group
+
+    def get_invoice_by_inline(self):
+        with self.session() as s:
+            invoices = s.query(Invoice.title_payment, Invoice.price, Invoice.id).all()
+            return invoices
 
     def remove_group_for_db(self, chat_id):
         with self.session() as s:

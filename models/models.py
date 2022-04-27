@@ -96,4 +96,23 @@ class Group(Base):
         self.title = title
 
 
+class Invoice(Base):
+    __tablename__ = 'invoices'
+    id = Column(Integer, unique=True, primary_key=True)
+    title_payment = Column(String(240))
+    description_payment = Column(String(240))
+    payload = Column(String(240))
+    price = Column(Integer)
+    currency = Column(String(10))
+
+    def __int__(self, title_payment, description_payment, payload, price):
+        self.title_payment = title_payment
+        self.description_payment = description_payment
+        self.payload = payload
+        self.price = price * 100
+
+    def get_prices(self):
+        return [{"label": self.currency, "amount": self.price}]
+
+
 Base.metadata.create_all(engine)
