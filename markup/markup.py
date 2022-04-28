@@ -34,7 +34,6 @@ def get_currency_buttons():
     inline_kb_full = InlineKeyboardMarkup(row_width=2)
     inline_kb_full.add(InlineKeyboardButton('UAH', callback_data="currencyUAH"),
                        InlineKeyboardButton('USD', callback_data="currencyUSD"))
-    # inline_kb_full.add(InlineKeyboardButton("❌Отмена", callback_data="currencydone"))
     return inline_kb_full
 
 
