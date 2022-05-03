@@ -30,17 +30,17 @@ async def start(message: types.Message):
         await bot.send_message(message.chat.id, MESSAGES["start_ok"], reply_markup=main_menu, parse_mode="Markdown")
 
 
-@dp.message_handler(text="Контакты", content_types=ChatType.PRIVATE)
+@dp.message_handler(text="Контакты", chat_type=ChatType.PRIVATE)
 async def get_contacts(message: types.Message):
     await bot.send_message(message.chat.id, MESSAGES["contacts"], reply_markup=user_menu)
 
 
-@dp.message_handler(text="Договор офферты", content_types=ChatType.PRIVATE)
+@dp.message_handler(text="Договор офферты", chat_type=ChatType.PRIVATE)
 async def get_privacy(message: types.Message):
     await bot.send_message(message.chat.id, MESSAGES["privacy"], reply_markup=user_menu)
 
 
-@dp.message_handler(text="Услуги и оплата", content_types=ChatType.PRIVATE)
+@dp.message_handler(text="Услуги и оплата", chat_type=ChatType.PRIVATE)
 async def get_services(message: types.Message):
     await bot.send_message(message.chat.id, MESSAGES["services"], reply_markup=user_menu)
 
