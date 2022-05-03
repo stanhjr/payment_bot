@@ -3,13 +3,13 @@ import re
 from aiogram import Bot, types
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
-from aiogram.types import PreCheckoutQuery, ContentType
+from aiogram.types import PreCheckoutQuery, ContentType, ChatType
 from aiogram.utils import executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.utils.exceptions import ChatNotFound, PaymentProviderInvalid, BotKicked
 
 from deploy.config import TOKEN, PAYMENT_TOKEN, ADMIN_ID
-from markup.markup import get_inline_buttons, get_invoices, get_currency_buttons, cancel_menu
+from markup.markup import get_inline_buttons, get_invoices, get_currency_buttons, cancel_menu, user_menu
 from models.db_api import data_api
 from markup import main_menu
 from messages import MESSAGES
@@ -22,12 +22,27 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
     if message.from_user.id not in ADMIN_ID:
-        await bot.send_message(message.chat.id, MESSAGES["start_error"])
+        await bot.send_message(message.chat.id, MESSAGES["start_user"], reply_markup=user_menu)
 
     elif message.chat.id < 0:
         pass
     else:
         await bot.send_message(message.chat.id, MESSAGES["start_ok"], reply_markup=main_menu, parse_mode="Markdown")
+
+
+@dp.message_handler(text="Контакты", content_types=ChatType.PRIVATE)
+async def get_contacts(message: types.Message):
+    await bot.send_message(message.chat.id, MESSAGES["contacts"], reply_markup=user_menu)
+
+
+@dp.message_handler(text="Договор офферты", content_types=ChatType.PRIVATE)
+async def get_privacy(message: types.Message):
+    await bot.send_message(message.chat.id, MESSAGES["privacy"], reply_markup=user_menu)
+
+
+@dp.message_handler(text="Услуги и оплата", content_types=ChatType.PRIVATE)
+async def get_services(message: types.Message):
+    await bot.send_message(message.chat.id, MESSAGES["services"], reply_markup=user_menu)
 
 
 @dp.message_handler(content_types=[ContentType.NEW_CHAT_MEMBERS])
