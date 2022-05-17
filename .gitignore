@@ -9,6 +9,8 @@ report.xlsx
 # Distribution / packaging
 .idea
 .Python
+deploy
+deploy/
 build/
 develop-eggs/
 dist/

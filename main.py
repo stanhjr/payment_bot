@@ -37,7 +37,8 @@ async def get_contacts(message: types.Message):
 
 @dp.message_handler(text="Договор офферты", chat_type=ChatType.PRIVATE)
 async def get_privacy(message: types.Message):
-    await bot.send_message(message.chat.id, MESSAGES["privacy"], reply_markup=user_menu)
+    await bot.send_document(chat_id=message.chat.id, document=open("contract_offer.docx", "rb"), reply_markup=user_menu)
+    # await bot.send_message(message.chat.id, MESSAGES["privacy"], reply_markup=user_menu)
 
 
 @dp.message_handler(text="Услуги и оплата", chat_type=ChatType.PRIVATE)
