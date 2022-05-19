@@ -47,7 +47,9 @@ cancel_button = KeyboardButton("❌Отмена")
 contacts_button = KeyboardButton("Контакты")
 contract_offer_button = KeyboardButton("Договор офферты")
 services_button = KeyboardButton("Услуги и оплата")
-user_menu = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2).add(contacts_button, contract_offer_button, services_button)
+service_button = KeyboardButton("Услуги")
+
+user_menu = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2).add(contacts_button, contract_offer_button, services_button, service_button)
 
 main_menu = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2).add(download_button)
 main_menu.add(send_invoice_button, create_invoice_button)

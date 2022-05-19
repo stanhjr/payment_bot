@@ -5,7 +5,7 @@ __pycache__/
 report.xlsx
 # C extensions
 *.so
-
+deploy/config.py
 # Distribution / packaging
 .idea
 .Python
