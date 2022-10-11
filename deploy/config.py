@@ -3,7 +3,7 @@ TOKEN = ''
 host = "localhost"
 DATABASE_URL = f'postgresql://stan:stan@{host}:5432/bot_test'
 
-ADMIN_ID = [589380091, 436985071, 336609833]
+ADMIN_ID = []
 
 # Payment part
 PAYMENT_TOKEN = '632593626:TEST:sandbox_i2752149886'
