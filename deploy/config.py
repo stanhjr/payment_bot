@@ -1,4 +1,4 @@
-TOKEN = '5134733454:AAFPQ9DbCYc7PlgVE8P_bwZOqGpPyi0Ty1k'
+TOKEN = ''
 
 host = "localhost"
 DATABASE_URL = f'postgresql://stan:stan@{host}:5432/bot_test'
